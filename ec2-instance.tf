@@ -21,11 +21,29 @@ resource "aws_instance" "web" {
     
   user_data = <<-EOF
               #!/bin/bash
-              apt-get update
-              apt-get install -y apache2
+              set -e
+
+              # Update system and install Apache
+              apt-get update -y
+              apt-get upgrade -y
+              apt-get install -y apache2 ufw
+
+              # Configure Apache
               systemctl start apache2
               systemctl enable apache2
-              echo "<h1>Welcome to the Web Server</h1>" > /var/www/html/index.html
-              EOF
+
+              # Add simple landing page
+              echo "<h1>Welcome to the Bank Web Server</h1>" > /var/www/html/index.html
+
+              # Basic firewall with UFW (allow SSH & HTTP, deny everything else)
+              ufw allow OpenSSH
+              ufw allow 'Apache Full'
+              ufw --force enable
+
+              # Create a non-root user for admin tasks
+              useradd -m -s /bin/bash devops
+              echo "devops ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+EOF
+
   }
 
