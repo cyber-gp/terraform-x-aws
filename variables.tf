@@ -32,6 +32,7 @@ variable "instance_type" {
 variable "key_name" {
     description = "Existing EC2 KeyPair name for SSH access"
     type = string
+    default = "geepee-aws-key-pair"
 }
 
 variable "db_username" {
