@@ -73,14 +73,27 @@ resource "aws_route_table_association" "private_assoc" {
   route_table_id = aws_route_table.private_rt.id
 }
 
-# Private Subnet
-resource "aws_subnet" "private" {
+# Private Subnet 1
+resource "aws_subnet" "private_a" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.2.0/24"   # Make sure this doesn’t overlap with your public subnet
-  availability_zone       = "us-east-1b"    # Adjust region/zone to match your setup
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "private-subnet"
+    Name = "private-subnet-a"
   }
 }
+
+# Private Subnet 2
+resource "aws_subnet" "private_b" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.3.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "private-subnet-b"
+  }
+}
+

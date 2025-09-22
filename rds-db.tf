@@ -1,9 +1,10 @@
 resource "aws_db_subnet_group" "rds_subnet_group" {
-    name = "rds-subnet-group"
-    subnet_ids = [aws_subnet.private.id]
+  name       = "rds-subnet-group"
+  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
 
-
-    tags = merge(var.tags, { Name = "rds-subnet-group" })
+  tags = {
+    Name = "rds-subnet-group"
+  }
 }
 
 resource "aws_db_instance" "mysql" {
