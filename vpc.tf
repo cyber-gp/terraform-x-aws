@@ -7,15 +7,6 @@ resource "aws_vpc" "main" {
   tags = merge(var.tags, { Name = "main-vpc" })
 }
 
-resource "aws_subnet" "public" {
-  vpc_id = aws_vpc.main.id
-  cidr_block = var.public_subnet_cidr
-  availability_zone = var.availability_zone_1
-  map_public_ip_on_launch = true
-
-  tags = merge(var.tags, { Name = "private-subnet" })
-}
-
 # Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
