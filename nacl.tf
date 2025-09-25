@@ -23,7 +23,7 @@ resource "aws_network_acl_rule" "inbound_mysql" {
   egress = false
   protocol = "6" # tcp
   rule_action = "allow"
-  cidr_block = aws_subnet.private.cidr_block
+  cidr_block = aws_subnet.private_a.cidr_block
   from_port = 3306
   to_port = 3306
 }
@@ -48,5 +48,10 @@ resource "aws_network_acl_association" "public_assoc" {
 
 resource "aws_network_acl_association" "private_assoc" {
   network_acl_id = aws_network_acl.main_acl.id
-  subnet_id = aws_subnet.private.id
+  subnet_id = aws_subnet.private_a.id
+}
+
+resource "aws_network_acl_association" "private_assoc_b" {
+  network_acl_id = aws_network_acl.main_acl.id
+  subnet_id = aws_subnet.private_b.id
 }

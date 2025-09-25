@@ -8,9 +8,14 @@ output "public_subnet_id" {
     value = aws_subnet.public.id
 }
 
-output "private_subnet_id" {
-    description = "Private subnet id"
-    value = aws_subnet.private.id
+output "private_subnet_a_id" {
+    description = "Private subnet A id"
+    value = aws_subnet.private_a.id
+}
+
+output "private_subnet_b_id" {
+    description = "Private subnet B id"
+    value = aws_subnet.private_b.id
 }
 
 output "ec2_public_ip" {
