@@ -14,7 +14,7 @@ resource "aws_internet_gateway" "igw" {
   tags = merge(var.tags, { Name = "main-igw" })
 }
 
-# Public Subnet
+# Public Subnet (for EC2)
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidr
@@ -24,16 +24,14 @@ resource "aws_subnet" "public" {
   tags = merge(var.tags, { Name = "public-subnet" })
 }
 
-# Private Subnet 1
+# Private Subnet 1 (for RDS)
 resource "aws_subnet" "private_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.private_subnet_cidr_a
   availability_zone       = var.availability_zone_1
   map_public_ip_on_launch = false
 
-  tags = {
-    Name = "private-subnet-a"
-  }
+  tags = merge(var.tags, { Name = "private-subnet-a" })
 }
 
 # Private Subnet 2
@@ -43,9 +41,25 @@ resource "aws_subnet" "private_b" {
   availability_zone       = var.availability_zone_2
   map_public_ip_on_launch = false
 
-  tags = {
-    Name = "private-subnet-b"
-  }
+  tags = merge(var.tags, { Name = "private-subnet-b" })
+}
+
+# Elastic IP for NAT Gateway
+resource "aws_eip" "nat_eip" {
+  domain = "vpc"
+  
+  tags = merge(var.tags, { Name = "nat-eip" })
+  
+  depends_on = [aws_internet_gateway.igw]
+}
+
+# NAT Gateway to allow private subnet outbound access
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id = aws_subnet.public.id
+
+  tags = merge(var.tags, { Name = "main-nat" })
+  depends_on = [aws_internet_gateway.igw]
 }
 
 # Public route table
@@ -55,6 +69,7 @@ resource "aws_route_table" "public_rt" {
   tags = merge(var.tags, { Name = "public-rt" })
 }
 
+# Route for public subnets to Internet Gateway
 resource "aws_route" "public_internet_access" {
   route_table_id = aws_route_table.public_rt.id
   destination_cidr_block = "0.0.0.0/0"
@@ -68,12 +83,19 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 # Private Route Table
-resource "aws_route_table" "private" {
+resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name = "private-rt"
-  }
+  tags = merge(var.tags, { Name = "private-rt" })
+}
+
+# Route for private subnets to NAT Gateway
+resource "aws_route" "private_via_nat" {
+  route_table_id         = aws_route_table.private_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat.id
+  
+  depends_on = [aws_nat_gateway.nat]
 }
 
 # Private route table 1 association
@@ -88,34 +110,6 @@ resource "aws_route_table_association" "private_assoc_b" {
   route_table_id = aws_route_table.private_rt.id
 }
 
-# NAT Gateway to allow private subnet outbound access
-resource "aws_eip" "nat_eip" {
-
-  tags = merge(var.tags, { Name = "nat-eip" })
-}
-
-resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.nat_eip.id
-  subnet_id = aws_subnet.public.id
-
-  tags = merge(var.tags, { Name = "main-nat" })
-  depends_on = [aws_internet_gateway.igw]
-}
-
-
-# Private route table (routes internet via NAT)
-  resource "aws_route_table" "private_rt" {
-  vpc_id = aws_vpc.main.id
-
-  tags = merge(var.tags, { Name = "private-rt" })
-}
-
-resource "aws_route" "private_via_nat" {
-  route_table_id = aws_route_table.private_rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id = aws_nat_gateway.nat.id
-  depends_on = [aws_nat_gateway.nat]
-}
 
 
 
